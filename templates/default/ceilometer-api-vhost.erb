@@ -1,0 +1,62 @@
+NameVirtualHost *:443
+NameVirtualHost *:80
+
+WSGIPythonHome <%= node['ceilometer']['docroot'] %>
+
+<VirtualHost *:80>
+        ServerName <%= node['ceilometer']['api']['url'] %>
+	DocumentRoot "<%= node['ceilometer']['docroot'] %>"
+	ErrorLog <%= node['apache']['log_dir'] %>/ceilometer-api.error.log
+	CustomLog <%= node['apache']['log_dir'] %>/ceilometer-api.access.log common
+
+	WSGIDaemonProcess ceilometer-api-http user=<%= node['ceilometer']['user'] %>  group=<%= node['ceilometer']['user'] %> python-path=<%= node['ceilometer']['docroot'] %>
+	WSGIScriptAlias / <%= node['ceilometer']['docroot'] %>/app.wsgi
+
+
+	<Directory <%= node['ceilometer']['docroot'] %>>
+		WSGIProcessGroup ceilometer-api-http
+		WSGIApplicationGroup %{GLOBAL}
+		Order deny,allow
+		Allow from all
+	</Directory>
+
+	<Directory <%= node['ceilometer']['docroot'] %>>
+		AllowOverride AuthConfig FileInfo Indexes Limit
+		Options IncludesNOEXEC -Indexes FollowSymLinks
+	</Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+        ServerName <%= node['ceilometer']['api']['url'] %>
+	DocumentRoot "<%= node['ceilometer']['docroot'] %>"
+	ErrorLog <%= node['apache']['log_dir'] %>/ceilometer-api.error.log
+	CustomLog <%= node['apache']['log_dir'] %>/ceilometer-api.access.log common
+
+	WSGIDaemonProcess ceilometer-api user=<%= node['ceilometer']['user'] %>  group=<%= node['ceilometer']['user'] %> python-path=<%= node['ceilometer']['docroot'] %>
+	WSGIScriptAlias / <%= node['ceilometer']['docroot'] %>/app.wsgi
+
+
+	<Directory <%= node['ceilometer']['docroot'] %>>
+		WSGIProcessGroup ceilometer-api
+		WSGIApplicationGroup %{GLOBAL}
+		Order deny,allow
+		Allow from all
+	</Directory>
+
+	<Directory <%= node['ceilometer']['docroot'] %>>
+		AllowOverride AuthConfig FileInfo Indexes Limit
+		Options IncludesNOEXEC -Indexes FollowSymLinks
+	</Directory>
+
+	<IfModule mod_ssl.c>
+		SSLEngine on
+		SSLVerifyClient none
+		SSLCipherSuite HIGH:MEDIUM:!aNULL:+SHA1:+MD5:+HIGH:+MEDIUM
+		SSLProxyEngine off
+		SSLProtocol all -SSLv2
+		SSLCertificateFile <%= node['apache']['dir'] %>/ssl/ceilometer-api.crt
+		SSLCertificateKeyFile <%= node['apache']['dir'] %>/ssl/ceilometer-api.key
+		SSLCertificateChainFile <%= node['apache']['dir'] %>/ssl/ceilometer-api.int
+	</IfModule>
+</VirtualHost>
+

@@ -1,0 +1,10 @@
+from pecan.deploy import deploy
+
+from ceilometer import service
+from ceilometer.openstack.common import log as logging
+
+# Initialize the oslo configuration library and logging
+service.prepare_service([])
+
+# Create a deployable application object
+application = deploy('/etc/ceilometer/api_config.py')
